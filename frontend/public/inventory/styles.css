@@ -181,6 +181,8 @@ h3 { margin: 0 0 12px; font-size: 17px; }
   display: flex; align-items: center; justify-content: center;
   padding: 24px; z-index: 50;
 }
+/* 作者样式 display:flex 会覆盖 [hidden] 的浏览器默认 display:none，必须显式收回，否则弹层关不掉 */
+.modal-mask[hidden] { display: none; }
 .modal {
   background: #fff; border-radius: 14px; padding: 20px;
   width: 100%; max-width: 360px;
