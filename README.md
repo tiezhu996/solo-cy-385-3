@@ -18,6 +18,7 @@ docker compose up -d --build
 - 内置疫苗计划，支持已接种和未接种状态。
 - 按月龄推荐辅食食谱，并支持过敏原筛选。
 - 记录每日喂养内容、时间和宝宝反应。
+- 辅食库存子模块：按月龄为每个宝宝独立管理食材库存（数量、到期日、低库存下限），喂食按实际用量扣减并留痕，库存按已过期/低库存/临期/正常分组；见 [`frontend/public/inventory/`](frontend/public/inventory/README.md)。
 - 维护成长里程碑时间线，预留照片上传扩展。
 - 统计月度喂养频次、辅食多样性和生长趋势。
 
@@ -33,6 +34,20 @@ cd frontend
 npm install
 npm run dev
 ```
+
+### 辅食库存子模块（免安装，本地直接运行）
+
+该子模块为零依赖纯静态页面，数据存于浏览器 localStorage，不依赖后端/数据库：
+
+```bash
+# 方式一：直接双击 frontend/public/inventory/index.html
+# 方式二：起一个静态服务器
+cd frontend/public/inventory
+python3 -m http.server 8080   # 访问 http://localhost:8080/
+```
+
+随前端开发服务器运行时地址为 http://localhost:5173/inventory/ ，首页有入口卡片。
+核心逻辑自测：`node frontend/public/inventory/selftest.js`。
 
 ## 技术栈
 

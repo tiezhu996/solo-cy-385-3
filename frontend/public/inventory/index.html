@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>宝宝辅食库存与消耗记录</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app">
+    <!-- 顶部：当前宝宝 + 月龄 + 切换 -->
+    <header class="hero">
+      <div class="hero-row">
+        <div class="baby-picker">
+          <label for="babySelect">当前宝宝</label>
+          <select id="babySelect" aria-label="切换宝宝"></select>
+        </div>
+        <button id="addBabyBtn" type="button" class="btn btn-light btn-sm">＋ 添加宝宝</button>
+      </div>
+      <p id="babyMeta" class="baby-meta"></p>
+    </header>
+
+    <!-- 全局提示条 -->
+    <div id="notice" class="notice" role="alert" hidden></div>
+
+    <!-- 入库登记 -->
+    <section class="card">
+      <h2>🥣 食材入库登记</h2>
+      <form id="stockForm" class="form-grid" novalidate>
+        <label class="field span-2">
+          <span>食材名称 <i>*</i></span>
+          <input type="text" name="name" maxlength="30" placeholder="如：高铁米粉、南瓜泥" required />
+        </label>
+        <label class="field">
+          <span>数量 <i>*</i></span>
+          <input type="text" inputmode="decimal" name="quantity" placeholder="如：200" required />
+        </label>
+        <label class="field">
+          <span>单位</span>
+          <input type="text" name="unit" maxlength="8" placeholder="克 / 盒 / 袋" value="克" />
+        </label>
+        <label class="field">
+          <span>到期日 <i>*</i></span>
+          <input type="date" name="expiry" required />
+        </label>
+        <label class="field">
+          <span>低库存下限</span>
+          <input type="text" inputmode="decimal" name="minQuantity" placeholder="低于此数提醒，默认 0" />
+        </label>
+        <div class="form-actions span-2">
+          <button type="submit" class="btn btn-primary">登记入库</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 库存总览（按状态分组） -->
+    <section class="card">
+      <div class="section-head">
+        <h2>📦 库存总览</h2>
+        <span id="stockSummary" class="summary"></span>
+      </div>
+      <div id="stockGroups"></div>
+    </section>
+
+    <!-- 消耗记录 -->
+    <section class="card">
+      <div class="section-head">
+        <h2>📝 喂食消耗记录</h2>
+        <button id="undoBtn" type="button" class="btn btn-ghost btn-sm" disabled>↩ 撤销最近一次</button>
+      </div>
+      <ul id="logList" class="log-list"></ul>
+    </section>
+
+    <footer class="foot">
+      数据仅保存在本机浏览器（localStorage），不上传服务器。
+      <button id="resetDemoBtn" type="button" class="link-btn">恢复演示数据</button>
+    </footer>
+  </main>
+
+  <!-- 添加宝宝弹层 -->
+  <div id="babyModal" class="modal-mask" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="babyModalTitle">
+      <h3 id="babyModalTitle">添加宝宝</h3>
+      <form id="babyForm" novalidate>
+        <label class="field">
+          <span>姓名 / 昵称 <i>*</i></span>
+          <input type="text" name="name" maxlength="20" placeholder="如：小满" required />
+        </label>
+        <label class="field">
+          <span>出生日期 <i>*</i></span>
+          <input type="date" name="birthday" required />
+        </label>
+        <p class="modal-tip">库存按月龄为每个宝宝独立建立，切换宝宝后只显示该宝宝的数据。</p>
+        <p id="babyError" class="modal-error" hidden></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>取消</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 通用小弹层：喂食扣减 / 补货 / 改下限 -->
+  <div id="promptModal" class="modal-mask" hidden>
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="promptTitle"></h3>
+      <p id="promptDesc" class="modal-tip"></p>
+      <input id="promptInput" type="text" inputmode="decimal" />
+      <p id="promptError" class="modal-error" hidden></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>取消</button>
+        <button type="button" id="promptOk" class="btn btn-primary">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

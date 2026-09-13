@@ -1,6 +1,13 @@
 <template>
   <main>
     <header><h1>宝宝成长记录</h1><p>小满 10 个月 · 今日辅食 3 次</p></header>
+    <section class="card inventory-entry">
+      <div>
+        <h2>辅食库存与消耗</h2>
+        <p>按月龄为每个宝宝管理食材库存、到期日、低库存下限与喂食扣减记录</p>
+      </div>
+      <a class="entry-btn" href="/inventory/" target="_blank" rel="noopener">进入</a>
+    </section>
     <section class="card">
       <h2>生长曲线</h2>
       <div ref="growthChart" class="chart"></div>
