@@ -1,0 +1,12 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/babytracker?serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:babytracker}
+    password: ${SPRING_DATASOURCE_PASSWORD:babytracker_pass}
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+jwt:
+  secret: ${JWT_SECRET:dev_secret}
