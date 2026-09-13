@@ -39,7 +39,9 @@
   function parsePositiveAmount(raw) {
     if (typeof raw === 'number') {
       if (!Number.isFinite(raw) || raw <= 0) return { ok: false };
-      return { ok: true, value: round3(raw) };
+      // 数值型入参同样拒绝超过三位小数（四舍五入到三位后发生变化即说明超限）
+      if (round3(raw) !== raw) return { ok: false };
+      return { ok: true, value: raw };
     }
     if (typeof raw !== 'string') return { ok: false };
     var s = raw.trim();
@@ -167,7 +169,8 @@
     if (!name) throw new InventoryError('NAME_REQUIRED', '请填写宝宝姓名/昵称');
     if (name.length > 20) throw new InventoryError('NAME_TOO_LONG', '姓名最多 20 个字');
     if (!isValidDateStr(input.birthday)) throw new InventoryError('BIRTHDAY_INVALID', '请选择正确的出生日期');
-    if (new Date(input.birthday + 'T23:59:59') > clock()) throw new InventoryError('BIRTHDAY_FUTURE', '出生日期不能晚于今天');
+    // 只比较日历日期：YYYY-MM-DD 字符串可直接按字典序比较，当天出生是允许的
+    if (input.birthday > todayStr()) throw new InventoryError('BIRTHDAY_FUTURE', '出生日期不能晚于今天');
     var b = { id: nextId('b'), name: name, birthday: input.birthday };
     state.babies.push(b);
     if (state.activeBabyId == null) state.activeBabyId = b.id;
@@ -197,7 +200,8 @@
   function parseNonNegative(raw) {
     if (typeof raw === 'number') {
       if (!Number.isFinite(raw) || raw < 0) return { ok: false };
-      return { ok: true, value: round3(raw) };
+      if (round3(raw) !== raw) return { ok: false };
+      return { ok: true, value: raw };
     }
     if (typeof raw !== 'string') return { ok: false };
     var s = raw.trim();
@@ -237,7 +241,9 @@
     return decorate(item);
   }
   function deleteItem(itemId) {
-    var idx = state.items.findIndex(function (x) { return String(x.id) === String(itemId); });
+    // 与扣减一致：只能删除当前宝宝名下的食材，跨宝宝移除一律拒绝
+    var item = requireActiveItem(itemId);
+    var idx = state.items.indexOf(item);
     if (idx === -1) throw new InventoryError('ITEM_NOT_FOUND', '未找到该食材');
     state.items.splice(idx, 1);
     save();

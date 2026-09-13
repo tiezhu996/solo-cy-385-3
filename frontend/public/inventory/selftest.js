@@ -53,6 +53,11 @@ const dd = core.addBaby({ name: '豆豆', birthday: '2026-02-13' });
 assert.strictEqual(dd.monthAge, 7);
 ok('当前宝宝是小满', () => assert.strictEqual(core.activeBaby().name, '小满'));
 ok('切换到不存在的宝宝被拒绝', () => expectThrow(() => core.switchBaby('nobody'), 'BABY_NOT_FOUND'));
+ok('当天出生的宝宝可以建档（不会误判为未来日期），月龄为 0，且不抢走当前宝宝', () => {
+  const t = core.addBaby({ name: '今日宝宝', birthday: '2026-09-13' });
+  assert.strictEqual(t.monthAge, 0);
+  assert.strictEqual(core.activeBaby().name, '小满');
+});
 
 console.log('入库校验');
 expectThrow(() => core.addItem({ name: '坏数量', quantity: '0', unit: '克', expiry: '2026-12-01', minQuantity: '' }), 'QUANTITY_INVALID');
@@ -95,6 +100,13 @@ ok('用量非法被拒绝（0/负数/文字/超限小数）', () => {
   expectThrow(() => core.consume(rice.id, '-5'), 'AMOUNT_INVALID');
   expectThrow(() => core.consume(rice.id, '勺'), 'AMOUNT_INVALID');
   expectThrow(() => core.consume(rice.id, '1.0001'), 'AMOUNT_INVALID');
+});
+ok('数值型入参同样拒绝超过三位小数（字符串与数字口径一致）', () => {
+  assert.strictEqual(core.parsePositiveAmount(1.2345).ok, false);
+  assert.strictEqual(core.parsePositiveAmount(1.0001).ok, false);
+  assert.strictEqual(core.parsePositiveAmount(1.234).ok, true);
+  assert.strictEqual(core.parsePositiveAmount(30).ok, true);
+  expectThrow(() => core.consume(rice.id, 1.2345), 'AMOUNT_INVALID');
 });
 ok('已过期食材拒绝喂食', () => expectThrow(() => core.consume(expired.id, '10'), 'ITEM_EXPIRED'));
 ok('库存不足拒绝扣减并提示剩余量', () => {
@@ -145,10 +157,14 @@ ok('切到豆豆后看不到小满的库存与消耗记录', () => {
   assert.deepStrictEqual(core.activeItems(), []);
   assert.deepStrictEqual(core.activeLogs(), []);
 });
-ok('豆豆名下入库的食材，小满看不到；且不能扣减小满的食材', () => {
+ok('豆豆名下入库的食材，小满看不到；在豆豆名下不能扣减或移除小满的食材', () => {
   core.addItem({ name: '豆豆专属米糊', quantity: '1', unit: '盒', expiry: '2026-12-01', minQuantity: '0' });
   assert.strictEqual(core.activeItems().length, 1);
   expectThrow(() => core.consume(soon.id, '1'), 'ITEM_NOT_FOUND');
+  const totalBefore = core.getState().items.length;
+  expectThrow(() => core.deleteItem(rice.id), 'ITEM_NOT_FOUND');
+  assert.strictEqual(core.getState().items.length, totalBefore, '跨宝宝删除被拒绝后食材数量不变');
+  assert.ok(core.getState().items.some((i) => i.id === rice.id), '被拒绝删除的小满食材应仍存在');
   core.switchBaby(xm.id);
   assert.ok(!core.activeItems().some((i) => i.name === '豆豆专属米糊'));
   assert.strictEqual(core.activeLogs().length, 2); // 南瓜泥30 + 西兰花100（撤销后记录仍保留并标记已撤销）
@@ -157,7 +173,7 @@ ok('豆豆名下入库的食材，小满看不到；且不能扣减小满的食�
 console.log('持久化');
 ok('数据已写入 localStorage', () => {
   const saved = JSON.parse(mem.get(core.STORAGE_KEY));
-  assert.strictEqual(saved.babies.length, 2);
+  assert.strictEqual(saved.babies.length, 3); // 小满、豆豆、今日宝宝
   assert.ok(saved.items.some((i) => i.name === '高铁米粉'));
 });
 
